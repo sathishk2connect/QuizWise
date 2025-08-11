@@ -24,7 +24,7 @@ const GenerateQuizQuestionsOutputSchema = z.object({
       question: z.string().describe('The quiz question.'),
       options: z.array(z.string()).describe('The multiple choice options for the question.'),
       correctAnswer: z.string().describe('The correct answer to the question.'),
-      explanation: z.string().describe('The explanation for the correct answer.'),
+      explanation: z.string().describe('A brief explanation of why the correct answer is correct.'),
     })
   ).describe('The generated quiz questions.'),
 });
@@ -43,9 +43,9 @@ const prompt = ai.definePrompt({
 Topic: {{{topic}}}
 
 Each question should have 4 options, one of which is the correct answer.
-Provide an explanation for the correct answer.
+For each question, provide a brief explanation for why the correct answer is correct.
 
-{{#if previousQuestions}}
+{{#if previousQuestions.length}}
 Important: Avoid generating questions that are similar to the following previously asked questions:
 {{#each previousQuestions}}
 - {{{this}}}
@@ -61,7 +61,7 @@ Example:
       "question": "What is the capital of France?",
       "options": ["Berlin", "Madrid", "Paris", "Rome"],
       "correctAnswer": "Paris",
-      "explanation": "Paris is the capital of France."
+      "explanation": "Paris is the capital of France and its largest city."
     }
   ]
 }

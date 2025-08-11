@@ -2,9 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { evaluateAnswerAndProvideFeedback } from '@/ai/flows/evaluate-answer-and-provide-feedback';
 import type { Question } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Progress } from './ui/progress';
@@ -30,42 +28,26 @@ export default function QuizView({ topic, questions, onQuizFinish, onOpenChat, o
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
-  const [isEvaluating, setIsEvaluating] = useState(false);
-  const { toast } = useToast();
-
+  
   const currentQuestion = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex) / questions.length) * 100;
 
-  const handleAnswerSelect = async (answer: string) => {
+  const handleAnswerSelect = (answer: string) => {
     if (isAnswered) return;
 
     setIsAnswered(true);
     setSelectedAnswer(answer);
-    setIsEvaluating(true);
+    
+    const isCorrect = answer === currentQuestion.correctAnswer;
 
-    try {
-      const result = await evaluateAnswerAndProvideFeedback({
-        question: currentQuestion.question,
-        answer: answer,
-        correctAnswer: currentQuestion.correctAnswer,
-        topic: topic,
-      });
-
-      setFeedback(result);
-      if (result.isCorrect) {
-        setScore(prev => prev + 1);
-      }
-    } catch (error) {
-      console.error('Failed to evaluate answer:', error);
-      toast({
-        title: 'Error',
-        description: 'Could not evaluate the answer. Please try again.',
-        variant: 'destructive',
-      });
-      setIsAnswered(false); // Allow retry
-    } finally {
-        setIsEvaluating(false);
+    if (isCorrect) {
+      setScore(prev => prev + 1);
     }
+    
+    setFeedback({
+        isCorrect: isCorrect,
+        feedback: currentQuestion.explanation,
+    });
   };
 
   const handleNextQuestion = () => {
@@ -127,15 +109,6 @@ export default function QuizView({ topic, questions, onQuizFinish, onOpenChat, o
               </Button>
             ))}
           </div>
-          
-          {isEvaluating && (
-            <div className="text-center p-4">
-              <div className="flex justify-center items-center mb-2">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              </div>
-              <p className="text-sm text-muted-foreground">Evaluating...</p>
-            </div>
-          )}
 
           {feedback && (
             <Card className={cn(
@@ -160,7 +133,7 @@ export default function QuizView({ topic, questions, onQuizFinish, onOpenChat, o
             </Card>
           )}
 
-          {isAnswered && !isEvaluating && (
+          {isAnswered && (
             <div className="flex justify-between items-center mt-6">
               <Button onClick={onQuit} variant="destructive">
                 Quit Quiz

@@ -16,7 +16,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { saveTopic, getTopicByName, addQuestionsToTopic } from '@/services/topic-service';
-import { saveQuizResult } from '@/services/quiz-result-service';
+import { saveQuizResult, updateQuizHistory } from '@/services/quiz-result-service';
 import Sidebar from '@/components/sidebar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
@@ -117,6 +117,15 @@ export default function Home() {
           title: "Could not save quiz result",
           variant: "destructive"
         });
+      }
+    }
+    
+    // Call updateQuizHistory after saving the score and setting state
+    if (user) {
+      try {
+        await updateQuizHistory(user.uid, topic, score);
+      } catch (error) {
+        console.error("Failed to update quiz history:", error);
       }
     }
     setQuizState('finished');

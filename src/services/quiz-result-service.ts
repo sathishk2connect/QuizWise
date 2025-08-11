@@ -37,3 +37,7 @@ export const getQuizResultsForUser = async (userId: string): Promise<QuizResult[
     });
     return results;
 }
+
+export const updateQuizHistory = async (userId: string, topic: string, score: number): Promise<void> => {
+    // This function will be implemented later to update the history section
+};
